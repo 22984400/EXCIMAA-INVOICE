@@ -62,7 +62,7 @@ export default function SignupPage() {
                 <input
                   {...register('firstName')}
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Paul"
+                  placeholder="Trésor"
                 />
                 {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
               </div>
@@ -71,7 +71,7 @@ export default function SignupPage() {
                 <input
                   {...register('lastName')}
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nkomo"
+                  placeholder="Tchebe"
                 />
                 {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>}
               </div>
