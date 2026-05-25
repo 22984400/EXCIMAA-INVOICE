@@ -9,9 +9,13 @@ import {
   TrendingUp,
   Edit2,
   ArrowLeft,
+  ClipboardCheck,
+  ListTodo,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import AuditDashboard from "../components/AuditDashboard";
+import MyTasksView from "../components/MyTasksView";
 import {
   BarChart,
   Bar,
@@ -74,6 +78,8 @@ const colors = [
 export default function MissionsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<"calendar" | "cac" | "mytasks">("calendar");
+  const [missionTypeId, setMissionTypeId] = useState(1);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [modal, setModal] = useState<ModalState>({
@@ -267,6 +273,43 @@ export default function MissionsPage() {
 
   return (
     <div>
+      {/* Tab navigation */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+          {[
+            { key: "calendar" as const, label: "Calendrier", icon: Calendar },
+            { key: "cac" as const, label: "Suivi CAC", icon: ClipboardCheck },
+            { key: "mytasks" as const, label: "Mes tâches", icon: ListTodo },
+          ].map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                activeTab === key
+                  ? "bg-white shadow text-slate-800"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <Icon size={15} />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* CAC Dashboard */}
+      {activeTab === "cac" && (
+        <AuditDashboard missionTypeId={missionTypeId} onMissionTypeChange={setMissionTypeId} />
+      )}
+
+      {/* My Tasks */}
+      {activeTab === "mytasks" && (
+        <MyTasksView missionTypeId={missionTypeId} onMissionTypeChange={setMissionTypeId} />
+      )}
+
+      {/* Calendar view (original) */}
+      {activeTab === "calendar" && (
+      <>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">
@@ -817,6 +860,8 @@ export default function MissionsPage() {
             </div>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );
