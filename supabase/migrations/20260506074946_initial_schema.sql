@@ -331,3 +331,37 @@ CREATE POLICY "Users can delete own missions"
 
 -- Initialize invoice sequence counter
 INSERT INTO settings (key, value) VALUES ('last_invoice_seq', '0') ON CONFLICT (key) DO NOTHING;
+
+
+-- Add new columns to clients table
+
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS rue TEXT;
+
+-- Juridiques tab
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS forme_juridique TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS obligation_300_salaries BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS obligation_consolidee BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS obligation_ca_18000ke BOOLEAN DEFAULT FALSE;
+
+-- Fiscales tab
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS statut_fiscal TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS regime_fiscal TEXT;
+
+-- Sociales & TNS tab
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS nb_salaries INTEGER;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS decalage_paie BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS jour_versement_salaires TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS date_paye TEXT; -- store as YYYY-MM-DD
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS option_versement_mensuel BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS entreprise_travail_temporaire BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS rattachement_decalage_paie BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS vrp_mono_carte BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS vrp_multi_carte BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS prevoyance_cadres_obligatoire BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS prevoyance_cadres_non_cadres BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS retraite_complementaire_non_cadre BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS retraite_complementaire_cadre BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS mutuelle BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS retraite_capitalisation BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS versement_1_pourcent_cdd BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS soumis_cotisations_tns BOOLEAN DEFAULT FALSE;
