@@ -19,10 +19,34 @@ type Client = {
   nui: string;
   rccm: string;
   contract_ref: string;
-  manager_name: string; // nouveau
-  email: string; // nouveau
-  phone: string; // nouveau
-  city: string; // nouveau
+  manager_name: string;
+  email: string;
+  phone: string;
+  city: string;
+  rue?: string;
+  forme_juridique?: string;
+  obligation_300_salaries?: boolean;
+  obligation_consolidee?: boolean;
+  obligation_ca_18000ke?: boolean;
+  statut_fiscal?: string;
+  regime_fiscal?: string;
+  nb_salaries?: number;
+  decalage_paie?: boolean;
+  jour_versement_salaires?: string;
+  date_paye?: string;
+  option_versement_mensuel?: boolean;
+  entreprise_travail_temporaire?: boolean;
+  rattachement_decalage_paie?: boolean;
+  vrp_mono_carte?: boolean;
+  vrp_multi_carte?: boolean;
+  prevoyance_cadres_obligatoire?: boolean;
+  prevoyance_cadres_non_cadres?: boolean;
+  retraite_complementaire_non_cadre?: boolean;
+  retraite_complementaire_cadre?: boolean;
+  mutuelle?: boolean;
+  retraite_capitalisation?: boolean;
+  versement_1_pourcent_cdd?: boolean;
+  soumis_cotisations_tns?: boolean;
 };
 
 type ModalState = { open: boolean; client: Partial<Client> | null };
@@ -35,6 +59,9 @@ export default function ClientsPage() {
   const [modal, setModal] = useState<ModalState>({ open: false, client: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<
+    "general" | "juridiques" | "fiscales" | "sociales"
+  >("general");
 
   const load = async () => {
     setLoading(true);
@@ -96,14 +123,40 @@ export default function ClientsPage() {
         email: "",
         phone: "",
         city: "",
+        rue: "",
+        forme_juridique: "",
+        obligation_300_salaries: false,
+        obligation_consolidee: false,
+        obligation_ca_18000ke: false,
+        statut_fiscal: "",
+        regime_fiscal: "",
+        nb_salaries: 0,
+        decalage_paie: false,
+        jour_versement_salaires: "",
+        date_paye: "",
+        option_versement_mensuel: false,
+        entreprise_travail_temporaire: false,
+        rattachement_decalage_paie: false,
+        vrp_mono_carte: false,
+        vrp_multi_carte: false,
+        prevoyance_cadres_obligatoire: false,
+        prevoyance_cadres_non_cadres: false,
+        retraite_complementaire_non_cadre: false,
+        retraite_complementaire_cadre: false,
+        mutuelle: false,
+        retraite_capitalisation: false,
+        versement_1_pourcent_cdd: false,
+        soumis_cotisations_tns: false,
       },
     });
     setError("");
+    setActiveTab("general");
   };
 
   const openEdit = (client: Client) => {
     setModal({ open: true, client: { ...client } });
     setError("");
+    setActiveTab("general");
   };
 
   const handleSave = async () => {
@@ -126,6 +179,36 @@ export default function ClientsPage() {
       email: modal.client.email || "",
       phone: modal.client.phone || "",
       city: modal.client.city || "",
+      rue: modal.client.rue || "",
+      forme_juridique: modal.client.forme_juridique || "",
+      obligation_300_salaries: modal.client.obligation_300_salaries || false,
+      obligation_consolidee: modal.client.obligation_consolidee || false,
+      obligation_ca_18000ke: modal.client.obligation_ca_18000ke || false,
+      statut_fiscal: modal.client.statut_fiscal || "",
+      regime_fiscal: modal.client.regime_fiscal || "",
+      nb_salaries: modal.client.nb_salaries || 0,
+      decalage_paie: modal.client.decalage_paie || false,
+      jour_versement_salaires: modal.client.jour_versement_salaires || "",
+      date_paye: modal.client.date_paye || "",
+      option_versement_mensuel: modal.client.option_versement_mensuel || false,
+      entreprise_travail_temporaire:
+        modal.client.entreprise_travail_temporaire || false,
+      rattachement_decalage_paie:
+        modal.client.rattachement_decalage_paie || false,
+      vrp_mono_carte: modal.client.vrp_mono_carte || false,
+      vrp_multi_carte: modal.client.vrp_multi_carte || false,
+      prevoyance_cadres_obligatoire:
+        modal.client.prevoyance_cadres_obligatoire || false,
+      prevoyance_cadres_non_cadres:
+        modal.client.prevoyance_cadres_non_cadres || false,
+      retraite_complementaire_non_cadre:
+        modal.client.retraite_complementaire_non_cadre || false,
+      retraite_complementaire_cadre:
+        modal.client.retraite_complementaire_cadre || false,
+      mutuelle: modal.client.mutuelle || false,
+      retraite_capitalisation: modal.client.retraite_capitalisation || false,
+      versement_1_pourcent_cdd: modal.client.versement_1_pourcent_cdd || false,
+      soumis_cotisations_tns: modal.client.soumis_cotisations_tns || false,
     };
 
     if (modal.client.id) {
@@ -139,7 +222,7 @@ export default function ClientsPage() {
     load();
   };
 
-  const updateField = (field: keyof Client, value: string) => {
+  const updateField = (field: keyof Client, value: any) => {
     setModal((m) => ({ ...m, client: { ...m.client, [field]: value } }));
   };
 
@@ -261,7 +344,7 @@ export default function ClientsPage() {
       {/* Modal d’ajout / modification */}
       {modal.open && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <h2 className="font-semibold text-slate-800">
                 {modal.client?.id ? "Modifier le client" : "Nouveau client"}
@@ -273,147 +356,581 @@ export default function ClientsPage() {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+
+            {/* Tabs */}
+            <div className="border-b border-slate-100 px-6">
+              <div className="flex gap-6">
+                <button
+                  onClick={() => setActiveTab("general")}
+                  className={`py-2 text-sm font-medium transition-all ${
+                    activeTab === "general"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Général
+                </button>
+                <button
+                  onClick={() => setActiveTab("juridiques")}
+                  className={`py-2 text-sm font-medium transition-all ${
+                    activeTab === "juridiques"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Juridiques
+                </button>
+                <button
+                  onClick={() => setActiveTab("fiscales")}
+                  className={`py-2 text-sm font-medium transition-all ${
+                    activeTab === "fiscales"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Fiscales
+                </button>
+                <button
+                  onClick={() => setActiveTab("sociales")}
+                  className={`py-2 text-sm font-medium transition-all ${
+                    activeTab === "sociales"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Sociales & TNS
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                   {error}
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
-                    Code client
-                  </label>
-                  <input
-                    value={modal.client?.client_code || ""}
-                    readOnly
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
-                    Pays
-                  </label>
-                  <input
-                    value={selectedCountry.name}
-                    readOnly
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Nom / Raison sociale <span className="text-red-500">*</span>
-                </label>
-                <input
-                  value={modal.client?.name || ""}
-                  onChange={(e) => updateField("name", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="ACME SARL"
-                />
-              </div>
+              {/* Tab Général */}
+              {activeTab === "general" && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
+                        Code client
+                      </label>
+                      <input
+                        value={modal.client?.client_code || ""}
+                        readOnly
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
+                        Pays
+                      </label>
+                      <input
+                        value={selectedCountry.name}
+                        readOnly
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Nom du gérant / président
-                </label>
-                <input
-                  value={modal.client?.manager_name || ""}
-                  onChange={(e) => updateField("manager_name", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Mr.TCHEBE Trésor"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Nom / Raison sociale{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={modal.client?.name || ""}
+                      onChange={(e) => updateField("name", e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="ACME SARL"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Mail
-                  </label>
-                  <input
-                    value={modal.client?.email || ""}
-                    onChange={(e) => updateField("email", e.target.value)}
-                    type="email"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="contact@gmail.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Téléphone
-                  </label>
-                  <input
-                    value={modal.client?.phone || ""}
-                    onChange={(e) => updateField("phone", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+237 6XX XXX XXX"
-                  />
-                </div>
-              </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Nom du gérant / président
+                    </label>
+                    <input
+                      value={modal.client?.manager_name || ""}
+                      onChange={(e) =>
+                        updateField("manager_name", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Mr.TCHEBE Trésor"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Ville
-                  </label>
-                  <input
-                    value={modal.client?.city || ""}
-                    onChange={(e) => updateField("city", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Douala"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Adresse / BP
-                  </label>
-                  <input
-                    value={modal.client?.address_bp || ""}
-                    onChange={(e) => updateField("address_bp", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="BP 1234"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Mail
+                      </label>
+                      <input
+                        value={modal.client?.email || ""}
+                        onChange={(e) => updateField("email", e.target.value)}
+                        type="email"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="contact@gmail.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Téléphone
+                      </label>
+                      <input
+                        value={modal.client?.phone || ""}
+                        onChange={(e) => updateField("phone", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="+237 6XX XXX XXX"
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    NUI
-                  </label>
-                  <input
-                    value={modal.client?.nui || ""}
-                    onChange={(e) => updateField("nui", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="M0000XXXXXXX"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    RCCM
-                  </label>
-                  <input
-                    value={modal.client?.rccm || ""}
-                    onChange={(e) => updateField("rccm", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="RC/DLA/XXXX/B/XXX"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Ville
+                      </label>
+                      <input
+                        value={modal.client?.city || ""}
+                        onChange={(e) => updateField("city", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Douala"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Rue
+                      </label>
+                      <input
+                        value={modal.client?.rue || ""}
+                        onChange={(e) => updateField("rue", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="12 Avenue Manga"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Réf. contrat
-                </label>
-                <input
-                  value={modal.client?.contract_ref || ""}
-                  onChange={(e) => updateField("contract_ref", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="CONTRAT/2025/XXX"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Adresse / BP
+                    </label>
+                    <input
+                      value={modal.client?.address_bp || ""}
+                      onChange={(e) =>
+                        updateField("address_bp", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="BP 1234"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        NUI
+                      </label>
+                      <input
+                        value={modal.client?.nui || ""}
+                        onChange={(e) => updateField("nui", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="M0000XXXXXXX"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        RCCM
+                      </label>
+                      <input
+                        value={modal.client?.rccm || ""}
+                        onChange={(e) => updateField("rccm", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="RC/DLA/XXXX/B/XXX"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Réf. contrat
+                    </label>
+                    <input
+                      value={modal.client?.contract_ref || ""}
+                      onChange={(e) =>
+                        updateField("contract_ref", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="CONTRAT/2025/XXX"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Tab Juridiques */}
+              {activeTab === "juridiques" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Forme juridique de l'entreprise
+                    </label>
+                    <input
+                      value={modal.client?.forme_juridique || ""}
+                      onChange={(e) =>
+                        updateField("forme_juridique", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="SARL, SA, SAS, etc."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Obligations légales
+                    </label>
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={
+                            modal.client?.obligation_300_salaries || false
+                          }
+                          onChange={(e) =>
+                            updateField(
+                              "obligation_300_salaries",
+                              e.target.checked,
+                            )
+                          }
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>&gt;= 300 Salariés</span>
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={modal.client?.obligation_consolidee || false}
+                          onChange={(e) =>
+                            updateField(
+                              "obligation_consolidee",
+                              e.target.checked,
+                            )
+                          }
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>Consolidée</span>
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={modal.client?.obligation_ca_18000ke || false}
+                          onChange={(e) =>
+                            updateField(
+                              "obligation_ca_18000ke",
+                              e.target.checked,
+                            )
+                          }
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>CA =&gt; 18 000 kE</span>
+                      </label>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Tab Fiscales */}
+              {activeTab === "fiscales" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Statut fiscal
+                    </label>
+                    <input
+                      value={modal.client?.statut_fiscal || ""}
+                      onChange={(e) =>
+                        updateField("statut_fiscal", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="IS, IR, etc."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Régime fiscal
+                    </label>
+                    <input
+                      value={modal.client?.regime_fiscal || ""}
+                      onChange={(e) =>
+                        updateField("regime_fiscal", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Réel simplifié, Réel normal, etc."
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Tab Sociales & TNS */}
+              {activeTab === "sociales" && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Nombre de salariés
+                    </label>
+                    <input
+                      type="number"
+                      value={modal.client?.nb_salaries || 0}
+                      onChange={(e) =>
+                        updateField(
+                          "nb_salaries",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Jour de versement des salaires
+                      </label>
+                      <input
+                        value={modal.client?.jour_versement_salaires || ""}
+                        onChange={(e) =>
+                          updateField("jour_versement_salaires", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="25"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Date de la paye
+                      </label>
+                      <input
+                        type="date"
+                        value={modal.client?.date_paye || ""}
+                        onChange={(e) =>
+                          updateField("date_paye", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={modal.client?.decalage_paie || false}
+                        onChange={(e) =>
+                          updateField("decalage_paie", e.target.checked)
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Décalage de la paie</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.option_versement_mensuel || false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "option_versement_mensuel",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>
+                        Option versement mensuel (1&gt;=9 et &lt;=9 salariés)
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.entreprise_travail_temporaire || false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "entreprise_travail_temporaire",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Entreprise de travail temporaire</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.rattachement_decalage_paie || false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "rattachement_decalage_paie",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Rattachement du décalage de la paie</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={modal.client?.vrp_mono_carte || false}
+                        onChange={(e) =>
+                          updateField("vrp_mono_carte", e.target.checked)
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>VRP Mono Carte</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={modal.client?.vrp_multi_carte || false}
+                        onChange={(e) =>
+                          updateField("vrp_multi_carte", e.target.checked)
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>VRP Multi Carte</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.prevoyance_cadres_obligatoire || false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "prevoyance_cadres_obligatoire",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Prévoyance cadres obligatoire</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.prevoyance_cadres_non_cadres || false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "prevoyance_cadres_non_cadres",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Prévoyance cadres et non cadres</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.retraite_complementaire_non_cadre ||
+                          false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "retraite_complementaire_non_cadre",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Retraite complémentaire non cadre mensuelle</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.retraite_complementaire_cadre || false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "retraite_complementaire_cadre",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Retraite complémentaire cadre mensuelle</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={modal.client?.mutuelle || false}
+                        onChange={(e) =>
+                          updateField("mutuelle", e.target.checked)
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Mutuelle</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={modal.client?.retraite_capitalisation || false}
+                        onChange={(e) =>
+                          updateField(
+                            "retraite_capitalisation",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Retraite par capitalisation</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={
+                          modal.client?.versement_1_pourcent_cdd || false
+                        }
+                        onChange={(e) =>
+                          updateField(
+                            "versement_1_pourcent_cdd",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Versement 1% CDD</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={modal.client?.soumis_cotisations_tns || false}
+                        onChange={(e) =>
+                          updateField(
+                            "soumis_cotisations_tns",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Soumis aux cotisations TNS</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
+
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100">
               <button
                 onClick={() => setModal({ open: false, client: null })}
