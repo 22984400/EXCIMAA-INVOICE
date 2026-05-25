@@ -4,6 +4,7 @@ import {
   Plus,
   Search,
   CreditCard as Edit2,
+  Trash2, // <-- added for delete icon
   X,
   Check,
 } from "lucide-react";
@@ -158,6 +159,30 @@ export default function ClientsPage() {
     setError("");
     setActiveTab("general");
   };
+
+  // ---------- DELETE CLIENT FUNCTION ----------
+  const handleDelete = async (clientId: string, clientName: string) => {
+    if (
+      !confirm(
+        `Supprimer définitivement le client "${clientName}" ? Cette action est irréversible.`,
+      )
+    ) {
+      return;
+    }
+    setLoading(true);
+    const { error: deleteError } = await supabase
+      .from("clients")
+      .delete()
+      .eq("id", clientId);
+    if (deleteError) {
+      setError(`Erreur lors de la suppression : ${deleteError.message}`);
+    } else {
+      setError("");
+      await load(); // refresh the list
+    }
+    setLoading(false);
+  };
+  // -------------------------------------------
 
   const handleSave = async () => {
     if (!modal.client?.name?.trim()) {
@@ -326,12 +351,22 @@ export default function ClientsPage() {
                       {client.phone || "—"}
                     </td>
                     <td className="px-6 py-3 text-right">
-                      <button
-                        onClick={() => openEdit(client)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                      >
-                        <Edit2 size={14} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openEdit(client)}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          title="Modifier"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(client.id, client.name)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
