@@ -702,7 +702,7 @@ export default function InvoiceFormPage() {
                 <span className="font-medium">RCCM:</span> {BANK_DETAILS.rccm}
               </p>
               <p>
-                <span className="font-medium">NIU:</span> {BANK_DETAILS.niu}
+                <span className="font-medium">NIU:</span> {BANK_DETAILS.nui}
               </p>
               <p>
                 <span className="font-medium">Résidence fiscale:</span>{" "}
