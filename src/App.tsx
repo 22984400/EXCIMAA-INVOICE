@@ -10,6 +10,7 @@ import InvoiceFormPage from "./pages/InvoiceFormPage";
 import InvoiceDetailPage from "./pages/InvoiceDetailPage";
 import ClientsPage from "./pages/ClientsPage";
 import MissionsPage from "./pages/MissionsPage";
+import ClientMissionPage from "./pages/ClientMissionPage";
 
 function AppRoutes() {
   const { session } = useAuth();
@@ -24,6 +25,7 @@ function AppRoutes() {
             <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
             <Route path="/clients" element={<ClientsPage />} />
             <Route path="/missions" element={<MissionsPage />} />
+            <Route path="/missions/:clientId" element={<ClientMissionPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>
