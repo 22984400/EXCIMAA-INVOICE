@@ -68,6 +68,7 @@ export default function InvoiceFormPage() {
     }
   };
 
+  // Keep generatePDF function but will NOT be called on save
   const generatePDF = async (invoiceData: any) => {
     try {
       const pdfData = {
@@ -75,17 +76,16 @@ export default function InvoiceFormPage() {
         date_emission: invoiceData.date_emission,
         date_contrat: invoiceData.date_contrat,
         client_details_snapshot: invoiceData.client_details_snapshot,
-        lines: invoiceData.lines, // Use the lines from invoiceData instead of the local 'lines' variable
+        lines: invoiceData.lines,
         totals: {
-          ...invoiceData.totals, // Copy the existing totals object
-          tva: invoiceData.montant_ht * 0.1925, // Set the 'tva' property to 19.25% of 'montant_ht'
+          ...invoiceData.totals,
+          tva: invoiceData.montant_ht * 0.1925,
         },
         signature_company: invoiceData.signature_company,
         signature_client: invoiceData.signature_client,
         payment_method: invoiceData.payment_method,
-        currency: selectedCountry.currency,
+        currency: invoiceData.currency,
       };
-
       const blob = await pdf(<InvoicePDF invoiceData={pdfData} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -138,7 +138,6 @@ export default function InvoiceFormPage() {
 
         setLines((linesRes.data || []) as InvoiceLine[]);
       } else {
-        // Generate reference for new invoice
         await generateReference();
         setLines([
           {
@@ -156,7 +155,6 @@ export default function InvoiceFormPage() {
     load();
   }, [selectedCountry.code, invoiceId]);
 
-  // Generate reference when date changes
   useEffect(() => {
     if (!invoiceId && profile?.first_name && profile?.last_name) {
       generateReference();
@@ -224,6 +222,7 @@ export default function InvoiceFormPage() {
           contract_ref: selectedClient.contract_ref,
         },
         currency: selectedCountry.currency,
+        country: selectedCountry.code, // <-- ADD country for filtering
         ref_pf: refPf,
         date_contrat: dateContrat || null,
         total_ht: totals.totalHT,
@@ -277,8 +276,9 @@ export default function InvoiceFormPage() {
         }
       }
 
-      // Generate PDF after successful save
-      await generatePDF(invoiceData);
+      // ✅ REMOVED PDF GENERATION – only save
+      // await generatePDF(invoiceData); // <-- Commented out
+
       setSaving(false);
       navigate("/invoices");
     } catch (err: any) {
