@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Edit2, Download, ArrowLeft } from "lucide-react";
+import { Edit2, Download, ArrowLeft, Check } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { InvoiceTemplate } from "../components/InvoiceTemplate";
 import html2pdf from "html2pdf.js";
@@ -8,11 +8,25 @@ import html2pdf from "html2pdf.js";
 type Invoice = any;
 type Line = any;
 
+const statusColors: Record<string, string> = {
+  draft: "bg-slate-100 text-slate-600",
+  sent: "bg-blue-100 text-blue-700",
+  paid: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+};
+const statusLabels: Record<string, string> = {
+  draft: "Brouillon",
+  sent: "Envoyée",
+  paid: "Payée",
+  cancelled: "Annulée",
+};
+
 export default function InvoiceDetailPage() {
   const { id } = useParams();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [lines, setLines] = useState<Line[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [totals, setTotals] = useState({
     honoraires_total: 0,
     retenus_total: 0,
@@ -73,6 +87,22 @@ export default function InvoiceDetailPage() {
     };
     load();
   }, [id]);
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!invoice) return;
+    setUpdatingStatus(true);
+    const { error } = await supabase
+      .from("invoices")
+      .update({ status: newStatus })
+      .eq("id", invoice.id);
+    if (error) {
+      console.error("Error updating status:", error);
+      alert("Erreur lors de la mise à jour du statut");
+    } else {
+      setInvoice({ ...invoice, status: newStatus });
+    }
+    setUpdatingStatus(false);
+  };
 
   const handleDownloadPDF = async () => {
     if (!printRef.current) return;
@@ -165,14 +195,34 @@ export default function InvoiceDetailPage() {
   `}
       </style>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <Link
           to="/invoices"
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
         >
           <ArrowLeft size={16} /> Retour
         </Link>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Status selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-600">Statut :</span>
+            <select
+              value={invoice.status}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              disabled={updatingStatus}
+              className={`text-sm font-medium px-3 py-1.5 rounded-full border-0 focus:ring-2 focus:ring-blue-500 cursor-pointer ${
+                statusColors[invoice.status] || statusColors.draft
+              }`}
+            >
+              <option value="draft">Brouillon</option>
+              <option value="sent">Envoyée</option>
+              <option value="paid">Payée</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+            {updatingStatus && (
+              <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+            )}
+          </div>
           <Link
             to={`/invoices/${id}/edit`}
             className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition-all"
