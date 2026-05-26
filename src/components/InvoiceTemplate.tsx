@@ -9,6 +9,7 @@ interface Line {
   unite?: number;
   taux?: number;
   montant: number;
+  comments?: string; // added for the comment field
 }
 
 interface InvoiceTemplateProps {
@@ -132,6 +133,12 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
     }
   `;
 
+  // Helper to split designation into three parts
+  const splitDesignation = (desig: string) => {
+    const parts = (desig || "").split("||");
+    return [parts[0] || "", parts[1] || "", parts[2] || ""];
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100 print:shadow-none print:border-none print:rounded-none invoice-container">
       <style>{printStyles}</style>
@@ -239,7 +246,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
         <div />
       </div>
 
-      {/* Honoraires Section */}
+      {/* Honoraires Section - Modified with split columns and comment */}
       {honors.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-slate-800 mb-3 uppercase">
@@ -249,7 +256,13 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
             <thead>
               <tr className="bg-slate-100 print:bg-slate-200">
                 <th className="text-left px-3 py-2 font-semibold text-slate-700 border border-slate-200">
-                  Désignation
+                  MISSION
+                </th>
+                <th className="text-left px-3 py-2 font-semibold text-slate-700 border border-slate-200">
+                  PRESTATIONA
+                </th>
+                <th className="text-left px-3 py-2 font-semibold text-slate-700 border border-slate-200">
+                  HONORAIRES
                 </th>
                 <th className="text-center px-3 py-2 font-semibold text-slate-700 w-20 border border-slate-200">
                   Unité
@@ -260,34 +273,51 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
                 <th className="text-right px-3 py-2 font-semibold text-slate-700 w-32 border border-slate-200">
                   Montant ({invoice.currency})
                 </th>
+                <th className="text-left px-3 py-2 font-semibold text-slate-700 w-40 border border-slate-200">
+                  Accompte
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {honors.map((l) => (
-                <tr
-                  key={l.id}
-                  className="hover:bg-slate-50 print:hover:bg-transparent"
-                >
-                  <td className="px-3 py-2 text-slate-700 border border-slate-200">
-                    {l.designation}
-                  </td>
-                  <td className="px-3 py-2 text-center text-slate-600 border border-slate-200">
-                    {formatNumber(l.unite || 0)}
-                  </td>
-                  <td className="px-3 py-2 text-center text-slate-600 border border-slate-200">
-                    {l.taux || 0}%
-                  </td>
-                  <td className="px-3 py-2 text-right text-slate-700 border border-slate-200">
-                    {formatNumber(l.montant)}
-                  </td>
-                </tr>
-              ))}
+              {honors.map((l) => {
+                const [mission, prestation, honorairesText] = splitDesignation(
+                  l.designation,
+                );
+                return (
+                  <tr
+                    key={l.id}
+                    className="hover:bg-slate-50 print:hover:bg-transparent"
+                  >
+                    <td className="px-3 py-2 text-slate-700 border border-slate-200">
+                      {mission}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 border border-slate-200">
+                      {prestation}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 border border-slate-200">
+                      {honorairesText}
+                    </td>
+                    <td className="px-3 py-2 text-center text-slate-600 border border-slate-200">
+                      {formatNumber(l.unite || 0)}
+                    </td>
+                    <td className="px-3 py-2 text-center text-slate-600 border border-slate-200">
+                      {l.taux || 0}%
+                    </td>
+                    <td className="px-3 py-2 text-right text-slate-700 border border-slate-200">
+                      {formatNumber(l.montant)}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 border border-slate-200">
+                      {l.comments || "—"}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Retenues Section */}
+      {/* Retenues Section - unchanged */}
       {retenues.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-slate-800 mb-3 uppercase">
@@ -335,7 +365,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
         </div>
       )}
 
-      {/* Debours Section */}
+      {/* Debours Section - unchanged */}
       {debours.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-slate-800 mb-3 uppercase">
@@ -383,7 +413,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
         </div>
       )}
 
-      {/* Totals section */}
+      {/* Totals section - unchanged */}
       <div className="mb-8 pb-8 border-b border-slate-200">
         <div className="flex justify-end">
           <div className="w-80">
@@ -441,7 +471,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
         </div>
       </div>
 
-      {/* Bank Details */}
+      {/* Bank Details - unchanged */}
       {BANK_DETAILS && Object.keys(BANK_DETAILS).length > 0 && (
         <div className="mb-8 p-4 bg-slate-50 rounded border border-slate-200">
           <h3 className="text-sm font-semibold text-slate-800 mb-3 uppercase">
