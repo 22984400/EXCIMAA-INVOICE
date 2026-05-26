@@ -42,6 +42,9 @@ export default function InvoiceFormPage() {
   );
   const [refPf, setRefPf] = useState("");
   const [dateContrat, setDateContrat] = useState("");
+  const [invoiceType, setInvoiceType] = useState<"PRO-FORMA" | "FACTURE">(
+    "FACTURE",
+  );
   const [lines, setLines] = useState<InvoiceLine[]>([]);
   const [acompteRegle, setAcompteRegle] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState<string[]>(["virement"]);
@@ -127,6 +130,7 @@ export default function InvoiceFormPage() {
           setInvoiceDate(inv.date_emission);
           setRefPf(inv.ref_pf || "");
           setDateContrat(inv.date_contrat || "");
+          setInvoiceType(inv.invoice_type || "FACTURE");
           setAcompteRegle(inv.acompte_regle || 0);
           setPaymentMethods([inv.payment_method]);
           setSignatureCompany(inv.signature_company || "");
@@ -222,9 +226,10 @@ export default function InvoiceFormPage() {
           contract_ref: selectedClient.contract_ref,
         },
         currency: selectedCountry.currency,
-        country: selectedCountry.code, // <-- ADD country for filtering
+        country: selectedCountry.code,
         ref_pf: refPf,
         date_contrat: dateContrat || null,
+        invoice_type: invoiceType, // <-- NEW: save the invoice type
         total_ht: totals.totalHT,
         total_tva: totals.tva,
         total_ttc: totals.totalTTC,
@@ -318,8 +323,8 @@ export default function InvoiceFormPage() {
             <p className="text-xs text-red-600 mt-1">{error}</p>
           </div>
         )}
-        {/* Header section */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 pb-6 border-b border-slate-200">
+        {/* Header section - changed to 5 columns to accommodate invoice type */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 pb-6 border-b border-slate-200">
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">
               Client
@@ -374,6 +379,21 @@ export default function InvoiceFormPage() {
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              Type de facture
+            </label>
+            <select
+              value={invoiceType}
+              onChange={(e) =>
+                setInvoiceType(e.target.value as "PRO-FORMA" | "FACTURE")
+              }
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="FACTURE">Facture</option>
+              <option value="PRO-FORMA">Pro‑forma</option>
+            </select>
+          </div>
         </div>
 
         {/* Client details */}
@@ -406,7 +426,7 @@ export default function InvoiceFormPage() {
           </div>
         )}
 
-        {/* Invoice lines */}
+        {/* Invoice lines (unchanged) */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-slate-800">HONORAIRES</h3>
