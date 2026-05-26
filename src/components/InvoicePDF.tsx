@@ -1,396 +1,430 @@
-import React from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { InvoiceLine, InvoiceTotals } from "../lib/invoiceUtils";
-import { COMPANY_INFO, BANK_DETAILS } from "../lib/constants";
-
-// Register fonts if needed
-// Font.register({ family: 'Inter', src: '/fonts/Inter-Regular.ttf' });
+import { Page, Document, StyleSheet, View, Text } from "@react-pdf/renderer";
+import { formatNumber } from "../lib/invoiceUtils";
+import { BANK_DETAILS, COMPANY_INFO } from "../lib/constants";
 
 const styles = StyleSheet.create({
-  page: {
-    padding: 30,
-    fontSize: 10,
-    fontFamily: "Helvetica",
-  },
+  page: { padding: 30, fontFamily: "Helvetica", fontSize: 10 }, // base font increased
   header: {
-    marginBottom: 20,
-    borderBottom: 1,
-    borderBottomColor: "#000",
-    paddingBottom: 10,
-  },
-  companyInfo: {
-    marginBottom: 10,
-  },
-  companyName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  companyDetails: {
-    fontSize: 8,
-    color: "#666",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  invoiceDetails: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 15,
+    borderBottom: "1px solid #ccc",
+    paddingBottom: 8,
   },
-  detailSection: {
-    width: "48%",
-  },
-  detailLabel: {
+  companySection: { width: "60%" },
+  companyName: { fontSize: 13, fontWeight: "bold", marginBottom: 3 },
+  companyDetails: { fontSize: 9, color: "#444" },
+  invoiceSection: { width: "35%", textAlign: "right" },
+  invoiceNumber: {
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#1e3a5f",
     marginBottom: 5,
   },
-  detailValue: {
-    marginBottom: 3,
-  },
-  table: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  tableHeader: {
+  clientBankRow: {
     flexDirection: "row",
-    backgroundColor: "#f0f0f0",
-    padding: 5,
-    fontWeight: "bold",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    borderBottom: "1px solid #ccc",
+    paddingBottom: 8,
+  },
+  clientBox: { width: "45%" },
+  bankBox: {
+    width: "45%",
+    backgroundColor: "#f0f9ff",
+    padding: 8,
+    borderRadius: 6,
+  },
+  sectionTitle: { fontSize: 11, fontWeight: "bold", marginBottom: 5 },
+  label: { fontSize: 9, fontWeight: "bold", marginBottom: 2 },
+  text: { fontSize: 9, color: "#444", marginBottom: 2 },
+  table: { width: "100%", marginTop: 8, marginBottom: 8 },
+  tableHeader: {
+    backgroundColor: "#f1f5f9",
+    flexDirection: "row",
+    borderBottom: "1px solid #ccc",
+    paddingVertical: 4,
   },
   tableRow: {
     flexDirection: "row",
-    padding: 5,
-    borderBottom: 0.5,
-    borderBottomColor: "#ccc",
+    borderBottom: "1px solid #eee",
+    paddingVertical: 4,
   },
-  colDesignation: { width: "40%" },
-  colUnite: { width: "15%", textAlign: "right" },
-  colTaux: { width: "15%", textAlign: "right" },
-  colMontant: { width: "20%", textAlign: "right" },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginTop: 15,
-    marginBottom: 5,
-  },
-  totals: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
+  tableCell: { fontSize: 9, paddingHorizontal: 4, textAlign: "left" },
+  // Column widths (adjusted for larger text)
+  mission: { width: "15%" },
+  prestation: { width: "15%" },
+  honorairesDesc: { width: "15%" },
+  unite: { width: "8%", textAlign: "center" },
+  taux: { width: "8%", textAlign: "center" },
+  montant: { width: "14%", textAlign: "right" },
+  comment: { width: "15%", textAlign: "left" },
+  retenueDesc: { width: "60%" },
   totalRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginBottom: 5,
+    marginTop: 4,
+    paddingVertical: 2,
   },
   totalLabel: {
-    width: "30%",
+    fontSize: 10,
+    fontWeight: "bold",
+    width: 110,
     textAlign: "right",
-    paddingRight: 10,
+    marginRight: 10,
   },
   totalValue: {
-    width: "20%",
-    textAlign: "right",
+    fontSize: 10,
     fontWeight: "bold",
+    width: 90,
+    textAlign: "right",
   },
-  signatures: {
-    marginTop: 40,
+  blueBox: {
+    backgroundColor: "#eff6ff",
+    padding: 6,
+    borderRadius: 4,
+    marginTop: 6,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  signature: {
     flexDirection: "row",
     justifyContent: "space-between",
-  },
-  signatureBox: {
-    width: "45%",
-    border: 1,
-    borderColor: "#000",
-    padding: 20,
-    minHeight: 60,
-  },
-  signatureLabel: {
-    fontSize: 9,
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  signatureText: {
-    fontSize: 10,
-    textAlign: "center",
-  },
-  bankDetails: {
     marginTop: 20,
-    padding: 10,
-    backgroundColor: "#f9f9f9",
+    borderTop: "1px solid #ccc",
+    paddingTop: 10,
   },
-  bankTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  bankRow: {
-    flexDirection: "row",
-    marginBottom: 3,
-  },
-  bankLabel: {
-    width: "25%",
-    fontWeight: "bold",
-  },
-  bankValue: {
-    width: "75%",
+  footer: {
+    textAlign: "center",
+    fontSize: 8,
+    color: "#64748b",
+    marginTop: 15,
+    borderTop: "1px solid #eee",
+    paddingTop: 8,
   },
 });
 
-interface InvoicePDFProps {
-  invoiceData: {
-    ref_pf: string;
-    date_emission: string;
-    date_contrat?: string;
-    client_details_snapshot: any;
-    lines: InvoiceLine[];
-    totals: InvoiceTotals;
-    signature_company: string;
-    signature_client: string;
-    payment_method: string;
-    currency: string;
-    tva: number;
-  };
-}
+const splitDesignation = (desig: string) => {
+  const parts = (desig || "").split("||");
+  return [parts[0] || "", parts[1] || "", parts[2] || ""];
+};
 
-export const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoiceData }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR");
-  };
-
-  const honoraireLines = invoiceData.lines.filter(
-    (l) => l.section === "HONORAIRES",
+export const InvoicePDF = ({ invoiceData }: { invoiceData: any }) => {
+  const honors = invoiceData.lines.filter(
+    (l: any) => l.section === "HONORAIRES",
   );
-  const retenuLines = invoiceData.lines.filter((l) => l.section === "RETENUS");
-  const debourLines = invoiceData.lines.filter((l) => l.section === "DEBOURS");
+  const retenues = invoiceData.lines.filter(
+    (l: any) => l.section === "RETENUS",
+  );
+  const debours = invoiceData.lines.filter((l: any) => l.section === "DEBOURS");
+
+  const honoraires_total = honors.reduce(
+    (s: number, l: any) => s + (l.montant || 0),
+    0,
+  );
+  const retenus_total = retenues.reduce(
+    (s: number, l: any) => s + (l.montant || 0),
+    0,
+  );
+  const debours_total = debours.reduce(
+    (s: number, l: any) => s + (l.montant || 0),
+    0,
+  );
+
+  const total_ht = honoraires_total;
+  const tva_amount = honoraires_total * 0.1925;
+  const total_ttc = total_ht + tva_amount;
+  const montant_ttc_final = total_ttc + retenus_total + debours_total;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.companyInfo}>
+          <View style={styles.companySection}>
             <Text style={styles.companyName}>{COMPANY_INFO.name}</Text>
+            <Text style={styles.companyDetails}>
+              EXPERTS COMPTABLES INTERNATIONAUX MANAGEMENT AUDIT ADVISORY
+            </Text>
             <Text style={styles.companyDetails}>{COMPANY_INFO.tagline}</Text>
             <Text style={styles.companyDetails}>{COMPANY_INFO.address}</Text>
+            <Text style={styles.companyDetails}>Tel: {COMPANY_INFO.phone}</Text>
             <Text style={styles.companyDetails}>
-              {COMPANY_INFO.phone} | {COMPANY_INFO.email}
+              Email: {COMPANY_INFO.email}
+            </Text>
+            {COMPANY_INFO.bp && (
+              <Text style={styles.companyDetails}>BP: {COMPANY_INFO.bp}</Text>
+            )}
+          </View>
+          <View style={styles.invoiceSection}>
+            <Text style={styles.invoiceNumber}>FACTURE</Text>
+            <Text style={styles.companyDetails}>
+              N° {invoiceData.invoice_number}
+            </Text>
+            <Text style={styles.companyDetails}>
+              Date:{" "}
+              {new Date(invoiceData.date_emission).toLocaleDateString("fr-FR")}
             </Text>
           </View>
         </View>
 
-        {/* Title */}
-        <Text style={styles.title}>FACTURE</Text>
-
-        {/* Invoice Details */}
-        <View style={styles.invoiceDetails}>
-          <View style={styles.detailSection}>
-            <Text style={styles.detailLabel}>Client:</Text>
-            <Text style={styles.detailValue}>
-              {invoiceData.client_details_snapshot.name}
+        {/* Client + Bank Details side by side with sky blue background */}
+        <View style={styles.clientBankRow}>
+          <View style={styles.clientBox}>
+            <Text style={styles.label}>Client</Text>
+            <Text style={styles.text}>
+              {invoiceData.client_details_snapshot?.name}
             </Text>
-            <Text style={styles.detailValue}>
-              {invoiceData.client_details_snapshot.address_bp}
-            </Text>
-            <Text style={styles.detailValue}>
-              NUI: {invoiceData.client_details_snapshot.nui}
-            </Text>
-            <Text style={styles.detailValue}>
-              RCCM: {invoiceData.client_details_snapshot.rccm}
-            </Text>
+            {invoiceData.client_details_snapshot?.address_bp && (
+              <Text style={styles.text}>
+                BP: {invoiceData.client_details_snapshot.address_bp}
+              </Text>
+            )}
+            {invoiceData.client_details_snapshot?.nui && (
+              <Text style={styles.text}>
+                NUI: {invoiceData.client_details_snapshot.nui}
+              </Text>
+            )}
+            {invoiceData.client_details_snapshot?.rccm && (
+              <Text style={styles.text}>
+                RCCM: {invoiceData.client_details_snapshot.rccm}
+              </Text>
+            )}
           </View>
-          <View style={styles.detailSection}>
-            <Text style={styles.detailValue}>Réf: {invoiceData.ref_pf}</Text>
-            <Text style={styles.detailValue}>
-              Date d'émission: {formatDate(invoiceData.date_emission)}
-            </Text>
-            {invoiceData.date_contrat && (
-              <Text style={styles.detailValue}>
-                Date contrat: {formatDate(invoiceData.date_contrat)}
+          <View style={styles.bankBox}>
+            <Text style={styles.label}>Coordonnées Bancaires</Text>
+            {BANK_DETAILS.bank && (
+              <Text style={styles.text}>{BANK_DETAILS.bank}</Text>
+            )}
+            {BANK_DETAILS.account_number && (
+              <Text style={styles.text}>
+                N° Compte: {BANK_DETAILS.account_number}
+              </Text>
+            )}
+            {BANK_DETAILS.iban && (
+              <Text style={styles.text}>IBAN: {BANK_DETAILS.iban}</Text>
+            )}
+            {BANK_DETAILS.residenceFiscal && (
+              <Text style={styles.text}>
+                Résidence fiscale: {BANK_DETAILS.residenceFiscal}
               </Text>
             )}
           </View>
         </View>
 
         {/* Honoraires Table */}
-        {honoraireLines.length > 0 && (
-          <View style={styles.table}>
-            <Text style={styles.sectionTitle}>HONORAIRES</Text>
-            <View style={styles.tableHeader}>
-              <Text style={styles.colDesignation}>Désignation</Text>
-              <Text style={styles.colUnite}>Unité</Text>
-              <Text style={styles.colTaux}>Taux (%)</Text>
-              <Text style={styles.colMontant}>
-                Montant ({invoiceData.currency})
-              </Text>
+        {honors.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Honoraires</Text>
+            <View style={styles.table}>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableCell, styles.mission]}>MISSION</Text>
+                <Text style={[styles.tableCell, styles.prestation]}>
+                  PRESTATION
+                </Text>
+                <Text style={[styles.tableCell, styles.honorairesDesc]}>
+                  HONORAIRES
+                </Text>
+                <Text style={[styles.tableCell, styles.unite]}>Unité</Text>
+                <Text style={[styles.tableCell, styles.taux]}>Taux (%)</Text>
+                <Text style={[styles.tableCell, styles.montant]}>
+                  Montant ({invoiceData.currency})
+                </Text>
+                <Text style={[styles.tableCell, styles.comment]}>Accompte</Text>
+              </View>
+              {honors.map((line: any) => {
+                const [mission, prestation, honorairesText] = splitDesignation(
+                  line.designation,
+                );
+                return (
+                  <View style={styles.tableRow} key={line.id}>
+                    <Text style={[styles.tableCell, styles.mission]}>
+                      {mission}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.prestation]}>
+                      {prestation}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.honorairesDesc]}>
+                      {honorairesText}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.unite]}>
+                      {formatNumber(line.unite || 0)}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.taux]}>
+                      {line.taux || 0}%
+                    </Text>
+                    <Text style={[styles.tableCell, styles.montant]}>
+                      {formatNumber(line.montant)}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.comment]}>
+                      {line.comments || "—"}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
-            {honoraireLines.map((line, idx) => (
-              <View key={idx} style={styles.tableRow}>
-                <Text style={styles.colDesignation}>{line.designation}</Text>
-                <Text style={styles.colUnite}>{line.unite || 0}</Text>
-                <Text style={styles.colTaux}>{line.taux || 0}%</Text>
-                <Text style={styles.colMontant}>
-                  {formatCurrency(line.montant)}
+            <View style={{ alignItems: "flex-end" }}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total HT :</Text>
+                <Text style={styles.totalValue}>
+                  {formatNumber(total_ht)} {invoiceData.currency}
                 </Text>
               </View>
-            ))}
-          </View>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>TVA (19.25%) :</Text>
+                <Text style={styles.totalValue}>
+                  {formatNumber(tva_amount)} {invoiceData.currency}
+                </Text>
+              </View>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total TTC :</Text>
+                <Text style={styles.totalValue}>
+                  {formatNumber(total_ttc)} {invoiceData.currency}
+                </Text>
+              </View>
+            </View>
+          </>
         )}
 
         {/* Retenues Table */}
-        {retenuLines.length > 0 && (
-          <View style={styles.table}>
-            <Text style={styles.sectionTitle}>RETENUES</Text>
-            <View style={styles.tableHeader}>
-              <Text style={styles.colDesignation}>Désignation</Text>
-              <Text style={styles.colUnite}></Text>
-              <Text style={styles.colTaux}>Taux (%)</Text>
-              <Text style={styles.colMontant}>
-                Montant ({invoiceData.currency})
-              </Text>
-            </View>
-            {retenuLines.map((line, idx) => (
-              <View key={idx} style={styles.tableRow}>
-                <Text style={styles.colDesignation}>{line.designation}</Text>
-                <Text style={styles.colUnite}></Text>
-                <Text style={styles.colTaux}>{(line.taux || 0) * 100}%</Text>
-                <Text style={styles.colMontant}>
-                  {formatCurrency(line.montant)}
+        {retenues.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { marginTop: 10 }]}>
+              Retenues
+            </Text>
+            <View style={styles.table}>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableCell, styles.retenueDesc]}>
+                  Désignation
+                </Text>
+                <Text style={[styles.tableCell, styles.unite]}>Unité</Text>
+                <Text style={[styles.tableCell, styles.taux]}>Taux (%)</Text>
+                <Text style={[styles.tableCell, styles.montant]}>
+                  Montant ({invoiceData.currency})
                 </Text>
               </View>
-            ))}
-          </View>
-        )}
-
-        {/* Debours Table */}
-        {debourLines.length > 0 && (
-          <View style={styles.table}>
-            <Text style={styles.sectionTitle}>DÉBOURS</Text>
-            <View style={styles.tableHeader}>
-              <Text style={styles.colDesignation}>Désignation</Text>
-              <Text style={styles.colUnite}>Unité</Text>
-              <Text style={styles.colTaux}>Qté/Taux</Text>
-              <Text style={styles.colMontant}>
-                Montant ({invoiceData.currency})
-              </Text>
+              {retenues.map((line: any) => (
+                <View style={styles.tableRow} key={line.id}>
+                  <Text style={[styles.tableCell, styles.retenueDesc]}>
+                    {line.designation}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.unite]}>
+                    {formatNumber(line.unite || 0)}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.taux]}>
+                    {line.taux || 0}%
+                  </Text>
+                  <Text style={[styles.tableCell, styles.montant]}>
+                    {formatNumber(line.montant)}
+                  </Text>
+                </View>
+              ))}
             </View>
-            {debourLines.map((line, idx) => (
-              <View key={idx} style={styles.tableRow}>
-                <Text style={styles.colDesignation}>{line.designation}</Text>
-                <Text style={styles.colUnite}>{line.unite || 0}</Text>
-                <Text style={styles.colTaux}>{line.taux || 0}</Text>
-                <Text style={styles.colMontant}>
-                  {formatCurrency(line.montant)}
+            <View style={{ alignItems: "flex-end" }}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total Retenues :</Text>
+                <Text style={styles.totalValue}>
+                  {formatNumber(retenus_total)} {invoiceData.currency}
                 </Text>
               </View>
-            ))}
-          </View>
+            </View>
+          </>
         )}
 
-        {/* Totals */}
-        <View style={styles.totals}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total HT:</Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(invoiceData.totals.totalHT)}{" "}
-              {invoiceData.currency}
+        {/* Débours Table */}
+        {debours.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { marginTop: 10 }]}>
+              Débours
             </Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>TVA (19.25%):</Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(invoiceData.totals.tva)} {invoiceData.currency}
-            </Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total TTC:</Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(invoiceData.totals.totalTTC)}{" "}
-              {invoiceData.currency}
-            </Text>
-          </View>
-          {invoiceData.totals.totalRetenues !== 0 && (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total Retenues:</Text>
-              <Text style={styles.totalValue}>
-                {formatCurrency(invoiceData.totals.totalRetenues)}{" "}
-                {invoiceData.currency}
-              </Text>
+            <View style={styles.table}>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableCell, styles.retenueDesc]}>
+                  Désignation
+                </Text>
+                <Text style={[styles.tableCell, styles.unite]}>Unité</Text>
+                <Text style={[styles.tableCell, styles.taux]}>Taux (%)</Text>
+                <Text style={[styles.tableCell, styles.montant]}>
+                  Montant ({invoiceData.currency})
+                </Text>
+              </View>
+              {debours.map((line: any) => (
+                <View style={styles.tableRow} key={line.id}>
+                  <Text style={[styles.tableCell, styles.retenueDesc]}>
+                    {line.designation}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.unite]}>
+                    {formatNumber(line.unite || 0)}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.taux]}>
+                    {line.taux || 0}%
+                  </Text>
+                  <Text style={[styles.tableCell, styles.montant]}>
+                    {formatNumber(line.montant)}
+                  </Text>
+                </View>
+              ))}
             </View>
-          )}
-          {invoiceData.totals.totalDebours !== 0 && (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total Débours:</Text>
-              <Text style={styles.totalValue}>
-                {formatCurrency(invoiceData.totals.totalDebours)}{" "}
-                {invoiceData.currency}
-              </Text>
-            </View>
-          )}
+          </>
+        )}
+
+        {/* Final totals */}
+        <View style={{ marginTop: 10, alignItems: "flex-end" }}>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total général à payer:</Text>
+            <Text style={styles.totalLabel}>Total Débours :</Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(invoiceData.totals.totalGeneral)}{" "}
-              {invoiceData.currency}
+              {formatNumber(debours_total)} {invoiceData.currency}
             </Text>
           </View>
-        </View>
-
-        {/* Payment Method */}
-        <Text style={styles.sectionTitle}>
-          Mode de paiement: {invoiceData.payment_method}
-        </Text>
-
-        {/* Bank Details */}
-        <View style={styles.bankDetails}>
-          <Text style={styles.bankTitle}>Détails bancaires</Text>
-          <View style={styles.bankRow}>
-            <Text style={styles.bankLabel}>Banque:</Text>
-            <Text style={styles.bankValue}>{BANK_DETAILS.bank}</Text>
+          <View style={styles.blueBox}>
+            <Text
+              style={{ fontSize: 11, fontWeight: "bold", color: "#1e3a5f" }}
+            >
+              Montant TTC :{" "}
+            </Text>
+            <Text
+              style={{ fontSize: 11, fontWeight: "bold", color: "#1e3a5f" }}
+            >
+              {formatNumber(montant_ttc_final)} {invoiceData.currency}
+            </Text>
           </View>
-          <View style={styles.bankRow}>
-            <Text style={styles.bankLabel}>IBAN:</Text>
-            <Text style={styles.bankValue}>{BANK_DETAILS.iban}</Text>
-          </View>
-          <View style={styles.bankRow}>
-            <Text style={styles.bankLabel}>RCCM:</Text>
-            <Text style={styles.bankValue}>{BANK_DETAILS.rccm}</Text>
-          </View>
-          <View style={styles.bankRow}>
-            <Text style={styles.bankLabel}>NIU:</Text>
-            <Text style={styles.bankValue}>{BANK_DETAILS.nui}</Text>
-          </View>
-          <View style={styles.bankRow}>
-            <Text style={styles.bankLabel}>Résidence fiscale:</Text>
-            <Text style={styles.bankValue}>{BANK_DETAILS.residenceFiscal}</Text>
-          </View>
+          {invoiceData.payment_method && (
+            <Text style={{ marginTop: 6, fontSize: 9 }}>
+              Mode de paiement : {invoiceData.payment_method}
+            </Text>
+          )}
         </View>
 
         {/* Signatures */}
-        <View style={styles.signatures}>
-          <View style={styles.signatureBox}>
-            <Text style={styles.signatureLabel}>Signature EXCI-MAA</Text>
-            <Text style={styles.signatureText}>
-              {invoiceData.signature_company}
-            </Text>
+        <View style={styles.signature}>
+          <View>
+            <Text style={styles.label}>Signature EXCI-MAA :</Text>
+            <View
+              style={{
+                width: 150,
+                height: 1,
+                backgroundColor: "#cbd5e1",
+                marginTop: 4,
+              }}
+            />
           </View>
-          <View style={styles.signatureBox}>
-            <Text style={styles.signatureLabel}>Signature Client</Text>
-            <Text style={styles.signatureText}>
-              {invoiceData.signature_client}
-            </Text>
+          <View>
+            <Text style={styles.label}>Signature du client :</Text>
+            <View
+              style={{
+                width: 150,
+                height: 1,
+                backgroundColor: "#cbd5e1",
+                marginTop: 4,
+              }}
+            />
           </View>
         </View>
+
+        <Text style={styles.footer}>
+          Document généré automatiquement par EXCI-MAA – Système de facturation
+          professionnelle
+        </Text>
       </Page>
     </Document>
   );
