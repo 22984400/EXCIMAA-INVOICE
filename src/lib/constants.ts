@@ -33,7 +33,7 @@ export const COMPANY_INFO = {
   address: 'Douala, Cameroun',
   email: 'www.exci-maa.com',
   phone: '+237 698 835 251',
-  bp: 'BP 2606   Immeuble CEDAM à Bali, Douala - République du Cameroun',
+  bp: 'BP: 2606   Immeuble CEDAM à Bali, Douala - République du Cameroun',
   rccm: 'RC/DLN/2024/063',
   nui: 'M032416624505J',
   accName: 'EXCI-MAA - SARL au Capital de 5 000 000 FCFA'
