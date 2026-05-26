@@ -146,11 +146,12 @@ export default function InvoiceFormPage() {
         setLines([
           {
             section: "HONORAIRES",
-            designation: "Audit comptable et financier 2025 12",
+            designation: "", // removed default text
             unite: 0,
             taux: 0,
             montant: 0,
             sort_order: 0,
+            comments: "", // new comment field
           },
         ]);
       }
@@ -176,6 +177,7 @@ export default function InvoiceFormPage() {
         taux: null,
         montant: 0,
         sort_order: maxSort + 1,
+        comments: "", // added for new lines
       },
     ]);
   };
@@ -229,7 +231,7 @@ export default function InvoiceFormPage() {
         country: selectedCountry.code,
         ref_pf: refPf,
         date_contrat: dateContrat || null,
-        invoice_type: invoiceType, // <-- NEW: save the invoice type
+        invoice_type: invoiceType,
         total_ht: totals.totalHT,
         total_tva: totals.tva,
         total_ttc: totals.totalTTC,
@@ -281,9 +283,6 @@ export default function InvoiceFormPage() {
         }
       }
 
-      // ✅ REMOVED PDF GENERATION – only save
-      // await generatePDF(invoiceData); // <-- Commented out
-
       setSaving(false);
       navigate("/invoices");
     } catch (err: any) {
@@ -299,6 +298,23 @@ export default function InvoiceFormPage() {
         <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
+
+  // Helper to split designation into three parts (MISSION, PRESTATIONA, HONORAIRES)
+  const splitDesignation = (desig: string) => {
+    if (!desig) return ["", "", ""];
+    const parts = desig.split("||");
+    return [parts[0] || "", parts[1] || "", parts[2] || ""];
+  };
+
+  const combineDesignation = (
+    mission: string,
+    prestation: string,
+    honoraires: string,
+  ) => {
+    return [mission, prestation, honoraires]
+      .filter((s) => s.trim() !== "")
+      .join("||");
+  };
 
   return (
     <div className="max-w-6xl">
@@ -426,7 +442,7 @@ export default function InvoiceFormPage() {
           </div>
         )}
 
-        {/* Invoice lines (unchanged) */}
+        {/* Invoice lines */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-slate-800">HONORAIRES</h3>
@@ -437,62 +453,127 @@ export default function InvoiceFormPage() {
               <Plus size={14} /> Ajouter
             </button>
           </div>
-          <div className="space-y-2 mb-4">
+          <div className="space-y-4 mb-4">
             {lines
               .filter((l) => l.section === "HONORAIRES")
               .map((line, idx) => {
                 const lineIdx = lines.indexOf(line);
+                const [mission, prestation, honorairesText] = splitDesignation(
+                  line.designation,
+                );
                 return (
-                  <div key={idx} className="flex items-end gap-2">
-                    <input
-                      type="text"
-                      value={line.designation}
-                      onChange={(e) =>
-                        updateLine(lineIdx, "designation", e.target.value)
-                      }
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                      placeholder="Designation"
-                    />
-                    <input
-                      type="number"
-                      value={line.unite || ""}
-                      onChange={(e) =>
-                        updateLine(
-                          lineIdx,
-                          "unite",
-                          parseFloat(e.target.value) || null,
-                        )
-                      }
-                      className="w-20 px-2 py-2 border border-slate-200 rounded-lg text-sm"
-                      placeholder="Unité"
-                    />
-                    <div className="relative">
+                  <div key={idx} className="border-b border-slate-100 pb-2">
+                    <div className="flex flex-wrap items-end gap-2">
+                      {/* Three equal-width text fields */}
                       <input
-                        type="number"
-                        value={line.taux || ""}
+                        type="text"
+                        value={mission}
                         onChange={(e) =>
                           updateLine(
                             lineIdx,
-                            "taux",
+                            "designation",
+                            combineDesignation(
+                              e.target.value,
+                              prestation,
+                              honorairesText,
+                            ),
+                          )
+                        }
+                        className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="MISSION"
+                      />
+                      <input
+                        type="text"
+                        value={prestation}
+                        onChange={(e) =>
+                          updateLine(
+                            lineIdx,
+                            "designation",
+                            combineDesignation(
+                              mission,
+                              e.target.value,
+                              honorairesText,
+                            ),
+                          )
+                        }
+                        className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="PRESTATION"
+                      />
+                      <input
+                        type="text"
+                        value={honorairesText}
+                        onChange={(e) =>
+                          updateLine(
+                            lineIdx,
+                            "designation",
+                            combineDesignation(
+                              mission,
+                              prestation,
+                              e.target.value,
+                            ),
+                          )
+                        }
+                        className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="HONORAIRES"
+                      />
+                      {/* Unité input */}
+                      <input
+                        type="number"
+                        value={line.unite || ""}
+                        onChange={(e) =>
+                          updateLine(
+                            lineIdx,
+                            "unite",
                             parseFloat(e.target.value) || null,
                           )
                         }
-                        className="w-20 px-2 py-2 pr-6 border border-slate-200 rounded-lg text-sm"
-                        placeholder="Taux"
+                        className="w-20 px-2 py-2 border border-slate-200 rounded-lg text-sm"
+                        placeholder="Unité"
                       />
-                      <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-slate-500">
-                        %
-                      </span>
+                      {/* Taux input */}
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={line.taux || ""}
+                          onChange={(e) =>
+                            updateLine(
+                              lineIdx,
+                              "taux",
+                              parseFloat(e.target.value) || null,
+                            )
+                          }
+                          className="w-20 px-2 py-2 pr-6 border border-slate-200 rounded-lg text-sm"
+                          placeholder="Taux"
+                        />
+                        <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-slate-500">
+                          %
+                        </span>
+                      </div>
+                      {/* Calculated montant */}
+                      <div className="w-24 px-3 py-2 bg-slate-50 rounded-lg text-sm font-medium text-slate-700">
+                        {formatNumber(line.montant, 2)}
+                      </div>
+                      {/* Delete button */}
+                      <button
+                        onClick={() => removeLine(lineIdx)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
-                    <div className="w-24 px-3 py-2 bg-slate-50 rounded-lg text-sm font-medium text-slate-700">
-                      {formatNumber(line.montant, 2)}
+                    {/* Comment field (small, light) */}
+                    {/* Comment field - full width below the three text fields */}
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={line.comments || ""}
+                        onChange={(e) =>
+                          updateLine(lineIdx, "comments", e.target.value)
+                        }
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="Accompte (commentaire)"
+                      />
                     </div>
-                    <button
-                      onClick={() => removeLine(lineIdx)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                    >
-                      <Trash2 size={14} />
-                    </button>
                   </div>
                 );
               })}
