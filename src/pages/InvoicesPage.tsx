@@ -146,7 +146,7 @@ export default function InvoicesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-                  <th className="text-left px-6 py-3 font-medium">ur</th>
+                  <th className="text-left px-6 py-3 font-medium">Facture</th>
                   <th className="text-left px-4 py-3 font-medium">Client</th>
                   <th className="text-left px-4 py-3 font-medium">Date</th>
                   <th className="text-right px-4 py-3 font-medium">Total</th>
