@@ -12,6 +12,7 @@ type Invoice = {
   total_general: number;
   status: string;
   currency: string;
+  invoice_type: string;
   client_details_snapshot: { name?: string };
 };
 
@@ -40,9 +41,10 @@ export default function InvoicesPage() {
     const { data } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, date_emission, total_general, status, currency, client_details_snapshot",
+        "id, invoice_number, date_emission, total_general, status, currency, invoice_type, client_details_snapshot",
       )
-      .eq("archived", false) // ← ne charger que les non archivées
+      .eq("archived", false)
+      .eq("country", selectedCountry.code)
       .order("created_at", { ascending: false });
     setInvoices((data || []) as Invoice[]);
     setLoading(false);
@@ -50,7 +52,7 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [selectedCountry.code]);
 
   const filtered = invoices.filter(
     (inv) =>
@@ -77,7 +79,6 @@ export default function InvoicesPage() {
       console.error(error);
       alert("Erreur lors de l'archivage.");
     } else {
-      // Recharger la liste (la facture archivée n'apparaîtra plus)
       load();
     }
   };
@@ -148,6 +149,7 @@ export default function InvoicesPage() {
                 <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
                   <th className="text-left px-6 py-3 font-medium">Facture</th>
                   <th className="text-left px-4 py-3 font-medium">Client</th>
+                  <th className="text-left px-4 py-3 font-medium">Type</th>
                   <th className="text-left px-4 py-3 font-medium">Date</th>
                   <th className="text-right px-4 py-3 font-medium">Total</th>
                   <th className="text-left px-4 py-3 font-medium">Statut</th>
@@ -171,6 +173,11 @@ export default function InvoicesPage() {
                     <td className="px-4 py-3 text-slate-700 font-medium">
                       {inv.client_details_snapshot?.name || "—"}
                     </td>
+                    <td className="px-4 py-3 text-slate-700 font-medium">
+                      {inv.invoice_type === "PRO-FORMA"
+                        ? "Pro‑forma"
+                        : "Facture"}
+                    </td>
                     <td className="px-4 py-3 text-slate-500">
                       {new Date(inv.date_emission).toLocaleDateString("fr-FR")}
                     </td>
@@ -182,7 +189,9 @@ export default function InvoicesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[inv.status] || statusColors.draft}`}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          statusColors[inv.status] || statusColors.draft
+                        }`}
                       >
                         {statusLabels[inv.status] || inv.status}
                       </span>
