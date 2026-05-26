@@ -11,6 +11,7 @@ export type InvoiceLine = {
   taux: number | null;
   montant: number;
   sort_order: number;
+  comments?: string;            // <-- added comment field
 };
 
 export type InvoiceTotals = {
